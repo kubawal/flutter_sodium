@@ -1,0 +1,1 @@
+Requires libsodium to be installed on the machine running the tests. For installation instructions see https://download.libsodium.org/doc/installation.

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'example.dart';
-import 'examples/version_example.dart';
+import 'examples/key_derivation.dart';
+import 'examples/random_data.dart';
+import 'examples/version.dart';
 
 void main() => runApp(new MyApp());
 
@@ -14,7 +16,10 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatelessWidget {
   final _examples = [
     Example('Common', isHeader: true),
-    versionExample
+    randomData,
+    version,
+    Example('Key functions', isHeader: true),
+    keyDerivation
   ];
 
   Widget _buildListTile(BuildContext context, Example example) {

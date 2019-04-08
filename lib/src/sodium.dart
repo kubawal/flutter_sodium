@@ -56,7 +56,7 @@ class Sodium {
     }
   }
 
-  /// Creates a master key.
+  /// Generates a random master key.
   static Uint8List cryptoKdfKeygen() {
     final size = cryptoKdfKeybytes;
     final Pointer<Int8> kPtr = allocate(count: size);
@@ -65,6 +65,129 @@ class Sodium {
     kPtr.free();
     return k;
   }
+
+  //
+  // crypto_pwhash_*
+  //
+  static int get cryptoPwhashAlgArgon2i13 =>
+      pwhashBindings.crypto_pwhash_alg_argon2i13();
+  static int get cryptoPwhashAlgArgon2id13 =>
+      pwhashBindings.crypto_pwhash_alg_argon2id13();
+  static int get cryptoPwhashAlgDefault =>
+      pwhashBindings.crypto_pwhash_alg_default();
+  static int get cryptoPwhashBytesMin =>
+      pwhashBindings.crypto_pwhash_bytes_min();
+  static int get cryptoPwhashBytesMax =>
+      pwhashBindings.crypto_pwhash_bytes_max();
+  static int get cryptoPwhashPasswdMin =>
+      pwhashBindings.crypto_pwhash_passwd_min();
+  static int get cryptoPwhashPasswdMax =>
+      pwhashBindings.crypto_pwhash_passwd_max();
+  static int get cryptoPwhashSaltbytes =>
+      pwhashBindings.crypto_pwhash_saltbytes();
+  static int get cryptoPwhashStrbytes =>
+      pwhashBindings.crypto_pwhash_strbytes();
+  static String get cryptoPwhashStrprefix =>
+      CString.fromUtf8(pwhashBindings.crypto_pwhash_strprefix());
+  static int get cryptoPwhashOpslimitMin =>
+      pwhashBindings.crypto_pwhash_opslimit_min();
+  static int get cryptoPwhashOpslimitMax =>
+      pwhashBindings.crypto_pwhash_opslimit_max();
+  static int get cryptoPwhashMemlimitMin =>
+      pwhashBindings.crypto_pwhash_memlimit_min();
+  static int get cryptoPwhashMemlimitMax =>
+      pwhashBindings.crypto_pwhash_memlimit_max();
+  static int get cryptoPwhashOpslimitInteractive =>
+      pwhashBindings.crypto_pwhash_opslimit_interactive();
+  static int get cryptoPwhashMemlimitInteractive =>
+      pwhashBindings.crypto_pwhash_memlimit_interactive();
+  static int get cryptoPwhashOpslimitModerate =>
+      pwhashBindings.crypto_pwhash_opslimit_moderate();
+  static int get cryptoPwhashMemlimitModerate =>
+      pwhashBindings.crypto_pwhash_memlimit_moderate();
+  static int get cryptoPwhashOpslimitSensitive =>
+      pwhashBindings.crypto_pwhash_opslimit_sensitive();
+  static int get cryptoPwhashMemlimitSensitive =>
+      pwhashBindings.crypto_pwhash_memlimit_sensitive();
+
+  static Uint8List cryptoPwhash(int outlen, String passwd, Uint8List salt,
+      int opslimit, int memlimit, int alg) {
+    final Pointer<Int8> outPtr = allocate(count: outlen);
+    final Pointer<Int8> passwdPtr = toUtf8Pointer(passwd, appendNull: false);
+    final Pointer<Int8> saltPtr = toListPointer(salt);
+
+    try {
+      _requireSuccess(
+          pwhashBindings.crypto_pwhash(outPtr, outlen, passwdPtr, passwd.length,
+              saltPtr, opslimit, memlimit, alg),
+          'crypto_pwhash');
+      return toUint8List(outPtr, outlen);
+    } finally {
+      outPtr.free();
+      passwdPtr.free();
+      saltPtr.free();
+    }
+  }
+
+  static String cryptoPwhashStr(String passwd, int opslimit, int memlimit) {
+    final Pointer<Int8> outPtr = allocate(count: Sodium.cryptoPwhashStrbytes);
+    final Pointer<Int8> passwdPtr = toUtf8Pointer(passwd, appendNull: false);
+
+    try {
+      _requireSuccess(
+          pwhashBindings.crypto_pwhash_str(
+              outPtr, passwdPtr, passwd.length, opslimit, memlimit),
+          'crypto_pwhash_str');
+      return toString(outPtr, Sodium.cryptoPwhashStrbytes);
+    } finally {
+      outPtr.free();
+      passwdPtr.free();
+    }
+  }
+
+  static String cryptoPwhashStrAlg(
+      String passwd, int opslimit, int memlimit, int alg) {
+    final Pointer<Int8> outPtr = allocate(count: Sodium.cryptoPwhashStrbytes);
+    final Pointer<Int8> passwdPtr = toUtf8Pointer(passwd, appendNull: false);
+
+    try {
+      _requireSuccess(
+          pwhashBindings.crypto_pwhash_str_alg(
+              outPtr, passwdPtr, passwd.length, opslimit, memlimit, alg),
+          'crypto_pwhash_str_alg');
+      return toString(outPtr, Sodium.cryptoPwhashStrbytes);
+    } finally {
+      outPtr.free();
+      passwdPtr.free();
+    }
+  }
+
+  static int cryptoPwhashStrVerify(String str, String passwd) {
+    final Pointer<Int8> strPtr = toUtf8Pointer(str);
+    final Pointer<Int8> passwdPtr = toUtf8Pointer(passwd);
+
+    try {
+      return pwhashBindings.crypto_pwhash_str_verify(
+          strPtr, passwdPtr, passwd.length);
+    } finally {
+      strPtr.free();
+      passwdPtr.free();
+    }
+  }
+
+  static int cryptoPwhashNeedsRehash(String str, int opslimit, int memlimit) {
+    final Pointer<Int8> strPtr = toUtf8Pointer(str);
+
+    try {
+      return pwhashBindings.crypto_pwhash_str_needs_rehash(
+          strPtr, opslimit, memlimit);
+    } finally {
+      strPtr.free();
+    }
+  }
+
+  static String get cryptoPwhashPrimitive =>
+      CString.fromUtf8(pwhashBindings.crypto_pwhash_primitive());
 
   //
   // randombytes_*

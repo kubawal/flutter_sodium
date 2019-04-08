@@ -39,6 +39,15 @@ Uint8List toUint8List(Pointer<Int8> p, int size) {
   return list;
 }
 
+String toString(Pointer<Int8> p, int size) {
+  final list = List<int>(size);
+  for (int i = 0; i < size; i++) {
+    list[i] = p.elementAt(i).load();
+  }
+
+  return Utf8Decoder().convert(list);
+}
+
 Pointer<Int8> toListPointer(Uint8List list) {
   Pointer<Int8> listPtr = allocate(count: list.length);
 
